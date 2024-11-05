@@ -5,7 +5,7 @@ import {
 } from "@opentelemetry/instrumentation";
 import { KafkaJsInstrumentationConfig } from "./types";
 import { PACKAGE_NAME, PACKAGE_VERSION } from "./version";
-import { TopicData } from "./internal-types";
+import { BrokerFetchResponse, TopicData } from "./internal-types";
 import { SpanKind } from "@opentelemetry/api";
 import { ATTR_SERVER_ADDRESS } from "@opentelemetry/semantic-conventions";
 import {
@@ -15,6 +15,8 @@ import {
   ATTR_MESSAGING_SYSTEM,
   MESSAGING_SYSTEM_VALUE_KAFKA,
 } from "@opentelemetry/semantic-conventions/incubating";
+
+const ConsumeMessageExtraAttributes = Symbol('opentelemetry.instrumentation_kafkajs.consume_message_extra_attributes');
 
 export class KafkaJsInstrumentation extends InstrumentationBase<KafkaJsInstrumentationConfig> {
   constructor(config: KafkaJsInstrumentationConfig = {}) {
@@ -31,10 +33,15 @@ export class KafkaJsInstrumentation extends InstrumentationBase<KafkaJsInstrumen
           "produce",
           this.getBrokerProducePatch()
         );
+        this._wrap(
+            moduleExports.prototype,
+            "fetch",
+            this.getBrokerFetchPatch()
+        )
         return moduleExports;
       },
       (moduleExports) => {
-        console.log("moduleExports", moduleExports);
+        // TODO: unpatch
       }
     );
 
@@ -85,6 +92,30 @@ export class KafkaJsInstrumentation extends InstrumentationBase<KafkaJsInstrumen
             span.end();
           });
         }
+      };
+    };
+  }
+
+  private getBrokerFetchPatch() {
+    return (original: any) => {
+      return function fetch(this: any, produceArgs: any) {
+        const brokerAddress = this.brokerAddress;
+        const response = original.apply(this, arguments);
+        return response.then((result: BrokerFetchResponse) => {
+            result.responses?.forEach(({ partitions }) => {
+                partitions?.forEach(({ messages }) => {
+                  messages?.forEach((message) => {
+                    Object.defineProperty(message, ConsumeMessageExtraAttributes, {
+                        value: {
+                            [ATTR_SERVER_ADDRESS]: brokerAddress,
+                        },
+                        enumerable: false, // hide from JSON.stringify, console.log, etc to have minimal impact on existing code
+                    });
+                  })
+                })
+              })
+            return result;
+        });
       };
     };
   }
