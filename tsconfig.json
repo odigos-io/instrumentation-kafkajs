@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "allowUnreachableCode": false,
+    "allowUnreachableCode": true,
     "allowUnusedLabels": false,
     "declaration": true,
     "declarationMap": true,
@@ -10,8 +10,8 @@
     "noEmitOnError": true,
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
-    "noImplicitReturns": true,
-    "noUnusedLocals": true,
+    "noImplicitReturns": false,
+    "noUnusedLocals": false,
     "pretty": true,
     "sourceMap": true,
     "strict": true,

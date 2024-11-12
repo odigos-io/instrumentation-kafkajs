@@ -1,3 +1,4 @@
+
 export interface Partition {
   partition: number;
   firstSequence: number;
