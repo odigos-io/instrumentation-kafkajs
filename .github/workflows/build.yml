@@ -1,0 +1,23 @@
+name: Build on PR
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  unit-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["14", "16", "18", "20", "22"]
+    runs-on: ubuntu-latest
+    steps:
+        - name: Checkout
+          uses: actions/checkout@v4
+        - uses: actions/setup-node@v4
+          with:
+            node-version: ${{ matrix.node }}
+        - name: Install
+          run: yarn
+        - name: Build
+          run: yarn compile
