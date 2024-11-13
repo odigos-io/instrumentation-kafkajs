@@ -33,6 +33,7 @@ import type {
   EachBatchHandler,
   KafkaMessage,
   Batch,
+  Message,
 } from "kafkajs";
 import { bufferTextMapGetter } from "./propagator";
 import { createOrAddMessageAttributes, getMessagesAttributes, PatchedKafkaMessage } from "./message-attributes";
@@ -151,7 +152,7 @@ export class KafkaJsInstrumentation extends InstrumentationBase<KafkaJsInstrumen
           const topic = t.topic;
           return t.partitions.flatMap((p) => {
             const partition = p.partition;
-            return p.messages.map((m: KafkaMessage) => {
+            return p.messages.map((m: Message) => {
               const spanName = `produce ${topic}`;
               const singleMessageSpan = instrumentation.tracer.startSpan(
                 spanName,
@@ -162,7 +163,6 @@ export class KafkaJsInstrumentation extends InstrumentationBase<KafkaJsInstrumen
                     [ATTR_MESSAGING_OPERATION_NAME]: "produce",
                     [ATTR_MESSAGING_DESTINATION_NAME]: topic,
                     [ATTR_MESSAGING_DESTINATION_PARTITION_ID]: partition,
-                    [ATTR_MESSAGING_KAFKA_OFFSET]: m.offset,
                     [ATTR_MESSAGING_KAFKA_MESSAGE_KEY]:
                       m.key?.toString("base64"),
                     [ATTR_SERVER_ADDRESS]: brokerAddress,
