@@ -29,7 +29,7 @@ jobs:
       # The logic below handles the npm publication:
       - uses: actions/setup-node@v4
         with:
-          node-version: 12
+          node-version: 20
           registry-url: 'https://registry.npmjs.org'
         if: ${{ steps.release.outputs.release_created }}
       - run: yarn
