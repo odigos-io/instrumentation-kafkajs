@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.3](https://github.com/odigos-io/instrumentation-kafkajs/compare/instrumentation-kafkajs-v0.0.2...instrumentation-kafkajs-v0.0.3) (2024-11-16)
+
+
+### Miscellaneous Chores
+
+* release 0.0.3 ([9ca8303](https://github.com/odigos-io/instrumentation-kafkajs/commit/9ca830372021e7e20a77ea63124dfb80b4a233f4))
+
 ## [0.0.2](https://github.com/odigos-io/instrumentation-kafkajs/compare/instrumentation-kafkajs-v0.0.1...instrumentation-kafkajs-v0.0.2) (2024-11-16)
 
 
