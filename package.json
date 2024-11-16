@@ -1,5 +1,5 @@
 {
-  "name": "@odigos-io/instrumentation-kafkajs",
+  "name": "@odigos/instrumentation-kafkajs",
   "version": "0.0.3",
   "description": "OpenTelemetry instrumentation for `kafkajs` messaging client for Apache Kafka",
   "main": "build/src/index.js",
