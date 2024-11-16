@@ -20,7 +20,21 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Release with release-please
+      - name: Create or Update Release PR
         uses: googleapis/release-please-action@v4
+        id: release
         with:
           token: ${{ secrets.RELEASE_BOT_TOKEN }}
+
+      # The logic below handles the npm publication:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 12
+          registry-url: 'https://registry.npmjs.org'
+        if: ${{ steps.release.outputs.release_created }}
+      - run: npm ci
+        if: ${{ steps.release.outputs.release_created }}
+      - run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+        if: ${{ steps.release.outputs.release_created }}          
