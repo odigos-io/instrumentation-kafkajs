@@ -46,9 +46,18 @@ export class KafkaJsInstrumentation extends InstrumentationBase<KafkaJsInstrumen
   protected init() {
     const instrumentation = this;
 
+    const unpatchBrokerMethods = (moduleExports: any) => { 
+      if (moduleExports?.prototype?.produce?.__wrapped) {
+        instrumentation._unwrap(moduleExports.prototype, "produce");
+      }
+      if (moduleExports?.prototype?.fetch?.__wrapped) {
+        instrumentation._unwrap(moduleExports.prototype, "fetch");
+      }
+    };
+    
     const brokerFileInstrumentation = new InstrumentationNodeModuleFile(
       "kafkajs/src/broker/index.js",
-      [">=0.1.0 <3"],
+      [">=0.3.0 <3"],
       (moduleExports) => {
         this._wrap(
           moduleExports.prototype,
@@ -62,18 +71,19 @@ export class KafkaJsInstrumentation extends InstrumentationBase<KafkaJsInstrumen
         );
         return moduleExports;
       },
-      (moduleExports) => {
-        // TODO: unpatch
-      }
+      unpatchBrokerMethods
     );
 
     const consumerFileInstrumentation = new InstrumentationNodeModuleFile(
       "kafkajs/src/consumer/index.js",
-      [">=0.1.0 <3"],
+      [">=0.3.0 <3"],
       (moduleExports) => {
         if (typeof moduleExports !== "function") {
           return moduleExports;
         }
+
+        // Store the original reference for unpatching
+        (moduleExports as any).__original = moduleExports;
 
         // the module export is a function, it is invoked to create a new instance of the consumer
         // we wrap the 'run' method of the consumer instance after it is created
@@ -88,13 +98,18 @@ export class KafkaJsInstrumentation extends InstrumentationBase<KafkaJsInstrumen
         };
       },
       (moduleExports) => {
-        // TODO: unpatch
+        // If the moduleExports is a wrapped function with an __original, restore it
+        // TODO: check if we can rely on the presence of __original
+        if (typeof moduleExports === "function" && moduleExports.__original) {
+          return moduleExports.__original;
+        }
+        return moduleExports;
       }
     );
 
     const consumerGroupFileInstrumentation = new InstrumentationNodeModuleFile(
       "kafkajs/src/consumer/consumerGroup.js",
-      [">=0.1.0 <3"],
+      [">=0.3.0 <3"],
       (moduleExports) => {
         this._wrap(
           moduleExports.prototype,
@@ -103,14 +118,16 @@ export class KafkaJsInstrumentation extends InstrumentationBase<KafkaJsInstrumen
         );
         return moduleExports;
       },
-      (moduleExports) => {
-        // TODO: unpatch
+      (moduleExports: any) => {
+        if (moduleExports?.prototype?.fetch?.__wrapped) {
+          instrumentation._unwrap(moduleExports.prototype, "fetch");
+        }
       }
     );
 
     const module = new InstrumentationNodeModuleDefinition(
       "kafkajs",
-      [">=0.1.0 <3"],
+      [">=0.3.0 <3"],
       undefined, // only patch internal files, not the main module
       undefined, // only patch internal files, not the main module
       [
@@ -146,18 +163,22 @@ export class KafkaJsInstrumentation extends InstrumentationBase<KafkaJsInstrumen
     const instrumentation = this;
     return (original: any) => {
       return function produce(this: any, produceArgs: any) {
-        const brokerAddress = this.brokerAddress;
+        // The broker object is the caller, and JavaScript binds this in that function call to the broker instance.
+        const brokerAddress: string = this.brokerAddress;
         const topicData: TopicData = produceArgs.topicData;
+        
         const spans = topicData.flatMap((t) => {
           const topic = t.topic;
           return t.partitions.flatMap((p) => {
-            const partition = p.partition;
+            const partition = p.partition; 
             return p.messages.map((m: Message) => {
-              const spanName = `produce ${topic}`;
+              // is the span name correct? is there any convention for this?
+              //const spanName = `produce ${topic}`;
               const singleMessageSpan = instrumentation.tracer.startSpan(
-                spanName,
+                topic,
                 {
                   kind: SpanKind.PRODUCER,
+                  startTime: Number(m.timestamp), 
                   attributes: {
                     [ATTR_MESSAGING_SYSTEM]: MESSAGING_SYSTEM_VALUE_KAFKA,
                     [ATTR_MESSAGING_OPERATION_NAME]: "produce",
@@ -169,6 +190,7 @@ export class KafkaJsInstrumentation extends InstrumentationBase<KafkaJsInstrumen
                   },
                 }
               );
+              // active span?
               // record the span context in each message headers for context propagation to downstream spans
               m.headers = m.headers ?? {}; // NOTICE - changed via side effect
               propagation.inject(
