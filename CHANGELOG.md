@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.5](https://github.com/odigos-io/instrumentation-kafkajs/compare/instrumentation-kafkajs-v0.0.4...instrumentation-kafkajs-v0.0.5) (2025-06-22)
+
+
+### Bug Fixes
+
+* add suppoerted version to readme for docs automation ([5866e63](https://github.com/odigos-io/instrumentation-kafkajs/commit/5866e635982c1ea38fe7479495798fd936fec8fa))
+* add supported version to readme for docs automation ([005d1f9](https://github.com/odigos-io/instrumentation-kafkajs/commit/005d1f9e2e50b8a68262a154e5667bfd61681e73))
+
 ## [0.0.4](https://github.com/odigos-io/instrumentation-kafkajs/compare/instrumentation-kafkajs-v0.0.3...instrumentation-kafkajs-v0.0.4) (2024-11-16)
 
 
