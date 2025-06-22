@@ -10,3 +10,7 @@ It is planed to be ported to upstream some time in future once it's more mature.
 ## Stability
 
 This package is a work in progress and can introduce breaking changes in future versions. Anyone is welcome to use it, but be aware from changes in attribute names and semantics, spans structure, etc.
+
+### Supported versions
+
+- [`kafkajs`](https://www.npmjs.com/package/kafkajs) versions `>=0.3.0 <3`
