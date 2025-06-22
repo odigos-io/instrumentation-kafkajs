@@ -14,3 +14,7 @@ This package is a work in progress and can introduce breaking changes in future 
 ### Supported versions
 
 - [`kafkajs`](https://www.npmjs.com/package/kafkajs) versions `>=0.3.0 <3`
+
+## Usage
+
+TODO: this is here for odigos automatic docs creation. 
