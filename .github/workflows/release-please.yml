@@ -9,6 +9,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  id-token: write
 
 jobs:
   release-job:
@@ -27,9 +28,9 @@ jobs:
           token: ${{ secrets.RELEASE_BOT_TOKEN }}
 
       # The logic below handles the npm publication:
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 #v5
         with:
-          node-version: 20
+          node-version: 24
           registry-url: 'https://registry.npmjs.org'
         if: ${{ steps.release.outputs.release_created }}
       - run: yarn
@@ -37,6 +38,4 @@ jobs:
       - run: yarn compile
         if: ${{ steps.release.outputs.release_created }}
       - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
         if: ${{ steps.release.outputs.release_created }}          
