@@ -21,7 +21,7 @@ jobs:
           fetch-depth: 0
 
       - name: Get release token
-        uses: odigos-io/ci-core@main
+        uses: odigos-io/ci-core/sts@main
         id: release-token
         with:
           pairs: |
