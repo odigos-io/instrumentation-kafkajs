@@ -7,8 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
   id-token: write
 
 jobs:
@@ -21,11 +20,18 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Get release token
+        uses: odigos-io/ci-core@main
+        id: release-token
+        with:
+          pairs: |
+            odigos-io/instrumentation-kafka:releaser
+
       - name: Create or Update Release PR
         uses: googleapis/release-please-action@v4
         id: release
         with:
-          token: ${{ secrets.RELEASE_BOT_TOKEN }}
+          token: ${{ steps.release-token.outputs.GH_TOKEN }}
 
       # The logic below handles the npm publication:
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 #v5
